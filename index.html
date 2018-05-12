@@ -1,10 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>$Title$</title>
+    <meta charset="utf-8">
+    <title>6.883 VAE Demo</title>
 </head>
 <body>
-$END$
+    <script src="https://unpkg.com/jquery"></script>
+    <script src="https://unpkg.com/keras-js"></script>
+    <script src="util.js"></script>
+    <script src="sample_image.js"></script>
+    <canvas id="canvas" style="width:280px; height:280px" width="28" height="28"></canvas>
+    <script>
+        const model = new KerasJS.Model({
+            filepath: 'model/model.bin',
+            gpu: true
+        })
+        model
+            .ready()
+            .then(() => {
+            // input data object keyed by names of the input layers
+            // or `input` for Sequential models
+            // values are the flattened Float32Array data
+            // (input tensor shapes are specified in the model config)
+            const inputData = {
+                input_1: new Float32Array(data)
+            }
+
+            // make predictions
+            return model.predict(inputData)
+        })
+        .then(outputData => {
+            // outputData is an object keyed by names of the output layers
+            // or `output` for Sequential models
+            // e.g.,
+            // outputData['fc1000']
+        })
+        .catch(err => {
+            // handle error
+        })
+    </script>
+    <script>
+        var canvas = document.getElementById("canvas");
+        var context = canvas.getContext("2d");
+        var i, j;
+        for (i = 0; i < 28; i++) {
+            for (j = 0; j < 28; j++) {
+                context.fillStyle = grayscale2color(sample[28*i+j]);
+                context.fillRect(j, i, 1, 1)
+            }
+        }
+    </script>
+    <script>
+        $(document).bind('mousemove',function(e){
+            //console.log("e.pageX: " + e.pageX + ", e.pageY: " + e.pageY);
+        });
+    </script>
 </body>
 </html>
