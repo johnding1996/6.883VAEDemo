@@ -6,8 +6,14 @@ from keras import backend as K
 from keras import objectives
 from keras.datasets import mnist
 from keras.callbacks import EarlyStopping, ModelCheckpoint
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
+# pathname to save the model
 KERAS_MODEL_FILEPATH = 'model.h5'
 
 # input image dimensions
@@ -77,6 +83,7 @@ def vae_loss(x, x_decoded_mean):
 vae = Model(x, x_decoded_mean_squash)
 vae.compile(optimizer='adam', loss=vae_loss)
 
+# number of epochs
 epochs = 100
 
 # train the VAE on MNIST digits
