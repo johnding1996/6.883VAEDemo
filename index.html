@@ -3,57 +3,68 @@
 <head>
     <meta charset="utf-8">
     <title>6.883 VAE Demo</title>
+    <style>
+        #input_canvas { background:gray; border:2px groove; }
+        #output_canvas { background:black; border:2px groove; }
+    </style>
 </head>
 <body>
     <script src="https://unpkg.com/jquery"></script>
     <script src="https://unpkg.com/keras-js"></script>
-    <script src="util.js"></script>
-    <script src="sample_image.js"></script>
-    <canvas id="canvas" style="width:280px; height:280px" width="28" height="28"></canvas>
+    <canvas id="input_canvas" style="width:280px; height:280px" width="28" height="28"></canvas>
+    <canvas id="output_canvas" style="width:280px; height:280px" width="28" height="28"></canvas>
+    <p>This is a VAE demo page for 6.883. Author: Mucong Ding (mcding@mit.edu).</p>
+    <p>Move mouse on the left canvas to begin.</p>
+    <p>See <a href="https://github.com/johnding1996/6.883VAEDemo">github</a> for more information.
+        Backend: <a href="https://github.com/transcranial/keras-js">Keras.js</a>.</p>
     <script>
-        const model = new KerasJS.Model({
-            filepath: 'model/model.bin',
-            gpu: true
-        })
-        model
-            .ready()
-            .then(() => {
-            // input data object keyed by names of the input layers
-            // or `input` for Sequential models
-            // values are the flattened Float32Array data
-            // (input tensor shapes are specified in the model config)
-            const inputData = {
-                input_1: new Float32Array(data)
-            }
-
-            // make predictions
-            return model.predict(inputData)
-        })
-        .then(outputData => {
-            // outputData is an object keyed by names of the output layers
-            // or `output` for Sequential models
-            // e.g.,
-            // outputData['fc1000']
-        })
-        .catch(err => {
-            // handle error
-        })
-    </script>
-    <script>
-        var canvas = document.getElementById("canvas");
-        var context = canvas.getContext("2d");
-        var i, j;
-        for (i = 0; i < 28; i++) {
-            for (j = 0; j < 28; j++) {
-                context.fillStyle = grayscale2color(sample[28*i+j]);
-                context.fillRect(j, i, 1, 1)
-            }
-        }
-    </script>
-    <script>
-        $(document).bind('mousemove',function(e){
-            //console.log("e.pageX: " + e.pageX + ", e.pageY: " + e.pageY);
+        $( document ).ready(function() {
+            load();
         });
+
+        async function load() {
+            this.model = new KerasJS.Model({
+                filepath: 'model/model.bin',
+                gpu: true
+            });
+            await this.model.ready();
+        }
+
+
+        $('#input_canvas').mousemove(function(e){
+            var inputCoordinates = [(e.pageX-8)*2/283-1, (e.pageY-8)*2/283-1];
+            var outputPromise = predict(inputCoordinates);
+            outputPromise.then(function(result) {
+                drawOutput(result);
+            });
+        });
+
+        async function predict(inputCoordinates) {
+            const inputData = { input_2: new Float32Array(inputCoordinates)};
+            const outputData = await this.model.predict(inputData);
+            return outputData['conv2d_6'];
+        }
+
+        function drawOutput(result) {
+            var outputCanvas = document.getElementById("output_canvas");
+            var context = outputCanvas.getContext("2d");
+            var i, j;
+            var percentage;
+            for (i = 0; i < 28; i++) {
+                for (j = 0; j < 28; j++) {
+                    percentage = result[28 * i + j];
+                    context.fillStyle = grayscale2color(percentage);
+                    context.fillRect(j, i, 1, 1);
+                }
+            }
+            console.log(min, max);
+        }
+
+        function grayscale2color(percentage) {
+            var color_part_dec = 255 * percentage;
+            var color_part_hex = Number(parseInt( color_part_dec , 10)).toString(16);
+            return "#" + color_part_hex + color_part_hex + color_part_hex;
+        }
     </script>
 </body>
 </html>
